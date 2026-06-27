@@ -5,27 +5,26 @@
 //  2. GitHub Releases를 프록시한다.
 //     - GET /api/releases           → 릴리즈/자산 목록(JSON)
 //     - GET /api/download/<assetId> → 비공개 저장소의 릴리즈 자산을 토큰으로 받아 전달
-//  3. 조사 결과물(보고서 작성 예시)을 포털 워커(samsungda.net)로 프록시한다.
-//     - /api/research, /api/research/<id> → 목록/업로드/삭제(R2·KV는 포털이 보유)
-//     - /research/<id>                    → 업로드된 결과물 파일 다운로드
+//  3. 조사 결과물(보고서 작성 예시)을 포털과 "같은" R2 버킷(samsungda-research)에서
+//     직접 읽고 쓴다(목록/업로드/삭제/열람).
+//     - GET    /api/research        → 목록
+//     - POST   /api/research        → 업로드(삭제 비밀번호 필수)
+//     - DELETE /api/research/<id>   → 삭제(업로드 시 설정한 비밀번호 필요)
+//     - GET    /research/<id>       → 파일 열람/다운로드
 //
-// 자료 출처는 기본값이 SimpleorNothing/report-site 의 GitHub Releases 이며,
-// vars(GITHUB_OWNER/GITHUB_REPO)로 바꿀 수 있다. 비공개 저장소이므로
-// GITHUB_TOKEN(secret)이 있어야 목록·다운로드가 동작한다.
+// 메뉴3를 굳이 R2로 직접 구현하는 이유:
+//   포털(samsungda.net)에는 사이트 비밀번호 게이트(SITE_PASSWORD)가 있어, 세션
+//   쿠키 없는 서버-측 프록시 요청은 /api/research 까지 전부 로그인 페이지(401)로
+//   막힌다. 그래서 프록시 대신 포털과 동일한 R2 버킷을 직접 바인딩해 같은 파일
+//   목록을 공유한다(한쪽에 올리면 양쪽에 동일하게 보인다). 키 생성·메타데이터
+//   인코딩·비밀번호 해시(PBKDF2) 방식을 포털과 똑같이 맞춰 상호 호환된다.
+//
+// 자료 출처(릴리스)는 기본값이 SimpleorNothing/report-site 이며, vars로 바꿀 수
+// 있다. 비공개 저장소이므로 GITHUB_TOKEN(secret)이 있어야 목록·다운로드가 동작한다.
 //   wrangler secret put GITHUB_TOKEN
-//
-// 이 Worker는 report-site 백엔드(FastAPI)의 /agent-guide·/api/releases·
-// /api/download 동작을 그대로 옮긴 것으로, 다운로드 집계/핑거프린트 같은
-// report-site 내부 상태에 의존하던 부가 기능은 제외한 순수 프록시 구현이다.
-// 조사 결과물(/api/research·/research)은 포털(samsungda.net) 워커가 R2·KV로
-// 보유하므로, 같은 파일 저장소를 공유하도록 그쪽으로 그대로 프록시한다.
 
 const GH_API = "https://api.github.com";
 const TEXT = { "content-type": "text/plain; charset=utf-8" };
-
-// 조사 결과물(보고서 예시)을 보유한 포털 워커. /api/research·/research/* 를
-// 이 오리진으로 프록시해 포털과 동일한 파일 목록을 공유한다.
-const PORTAL = "https://samsungda.net";
 
 function json(data, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(data), {
@@ -34,6 +33,36 @@ function json(data, status = 200, extraHeaders = {}) {
   });
 }
 
+// ── 비밀번호 해시(포털과 동일) ────────────────────────────────────────────────
+function bytesToHex(bytes) {
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+function hexToBytes(hex) {
+  const out = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < out.length; i++) out[i] = parseInt(hex.substr(i * 2, 2), 16);
+  return out;
+}
+async function pbkdf2(password, salt) {
+  const km = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" }, km, 256);
+  return new Uint8Array(bits);
+}
+async function hashPassword(password) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  return { pwhash: bytesToHex(await pbkdf2(password, salt)), pwsalt: bytesToHex(salt) };
+}
+function timingSafeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let r = 0;
+  for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return r === 0;
+}
+async function verifyPassword(password, pwhash, pwsalt) {
+  if (!password || !pwhash || !pwsalt) return false;
+  return timingSafeEqual(bytesToHex(await pbkdf2(password, hexToBytes(pwsalt))), pwhash);
+}
+
+// ── GitHub Releases(메뉴1) ───────────────────────────────────────────────────
 function repoSlug(env) {
   const owner = env.GITHUB_OWNER || "SimpleorNothing";
   const repo = env.GITHUB_REPO || "report-site";
@@ -126,24 +155,99 @@ async function downloadAsset(env, assetId) {
   return new Response(r.body, { headers });
 }
 
-// 조사 결과물(보고서 예시) 관련 요청을 포털 워커로 그대로 전달한다.
-// 목록(GET)·업로드(POST)·삭제(DELETE)·파일 열람(GET /research/<id>) 모두
-// 포털이 R2·KV로 처리하므로, 메서드·헤더·본문을 보존해 프록시한다.
-async function proxyToPortal(request, url) {
-  const target = PORTAL + url.pathname + (url.search || "");
-  const headers = new Headers(request.headers);
-  headers.delete("host");
-  const isBodyless = request.method === "GET" || request.method === "HEAD";
-  try {
-    return await fetch(target, {
-      method: request.method,
-      headers,
-      redirect: "follow",
-      body: isBodyless ? null : request.body,
-    });
-  } catch (e) {
-    return new Response(`포털 프록시 실패: ${e}`, { status: 502, headers: TEXT });
+// ── 조사 결과물(메뉴3) — 포털과 동일한 R2 버킷(RESEARCH=samsungda-research) ────
+async function handleResearchApi(request, env, id) {
+  if (!env.RESEARCH) return json({ error: "R2 bucket not configured" }, 503);
+
+  // Collection: /api/research
+  if (!id) {
+    if (request.method === "GET") {
+      const listed = await env.RESEARCH.list({ include: ["customMetadata", "httpMetadata"] });
+      const items = listed.objects.map((o) => ({
+        id: o.key,
+        title: o.customMetadata?.title ? decodeURIComponent(o.customMetadata.title) : o.key,
+        name: o.customMetadata?.name ? decodeURIComponent(o.customMetadata.name) : o.key,
+        size: o.size,
+        type: o.httpMetadata?.contentType || "",
+        uploaded: o.uploaded,
+        uploader: o.customMetadata?.uploader ? decodeURIComponent(o.customMetadata.uploader) : "",
+      }));
+      items.sort((a, b) => new Date(b.uploaded) - new Date(a.uploaded));
+      return json(items);
+    }
+    if (request.method === "POST") {
+      let form;
+      try {
+        form = await request.formData();
+      } catch {
+        return json({ error: "expected multipart/form-data" }, 400);
+      }
+      const file = form.get("file");
+      if (!file || typeof file.arrayBuffer !== "function") return json({ error: "missing file" }, 400);
+      const password = String(form.get("password") || "");
+      if (!password) return json({ error: "file password required" }, 400);
+      const name = String(file.name || "untitled");
+      const title = String(form.get("title") || name.replace(/\.[^.]+$/, ""));
+      const uploader = String(form.get("uploader") || "").slice(0, 40);
+      const safe = (name.replace(/[^\w.\-]+/g, "_").slice(-80)) || "file";
+      const key = Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 7) + "-" + safe;
+      const { pwhash, pwsalt } = await hashPassword(password);
+      await env.RESEARCH.put(key, await file.arrayBuffer(), {
+        httpMetadata: { contentType: file.type || "application/octet-stream" },
+        customMetadata: { title: encodeURIComponent(title), name: encodeURIComponent(name), uploader: encodeURIComponent(uploader), pwhash, pwsalt },
+      });
+      return json({ id: key, title, name }, 201);
+    }
+    return json({ error: "method not allowed" }, 405);
   }
+
+  // Item: /api/research/<id>
+  if (request.method === "DELETE") {
+    const obj = await env.RESEARCH.head(id);
+    if (!obj) return new Response(null, { status: 204 }); // already gone
+    const provided = request.headers.get("x-file-password") || "";
+    const meta = obj.customMetadata || {};
+    let ok;
+    if (meta.pwhash && meta.pwsalt) {
+      // 삭제에는 업로더가 설정한 파일별 비밀번호가 필요
+      ok = await verifyPassword(provided, meta.pwhash, meta.pwsalt);
+    } else {
+      // 레거시 항목(파일별 비밀번호 없음): 공용 업로드 토큰으로 폴백(agentguide에는
+      // UPLOAD_TOKEN이 없으므로 사실상 삭제 불가 — 포털에서 처리).
+      ok = !!env.UPLOAD_TOKEN && provided === env.UPLOAD_TOKEN;
+    }
+    if (!ok) return json({ error: "wrong password" }, 403);
+    await env.RESEARCH.delete(id);
+    return new Response(null, { status: 204 });
+  }
+  return json({ error: "method not allowed" }, 405);
+}
+
+async function serveResearchFile(env, id) {
+  if (!env.RESEARCH) return new Response("R2 bucket not configured", { status: 503, headers: TEXT });
+  const obj = await env.RESEARCH.get(id);
+  if (!obj) return new Response("Not found", { status: 404, headers: TEXT });
+  const headers = new Headers();
+  obj.writeHttpMetadata(headers);
+  headers.set("etag", obj.httpEtag);
+  if (!headers.get("content-type")) headers.set("content-type", "application/octet-stream");
+  headers.set("x-content-type-options", "nosniff");
+  // 다운로드 시 R2 키(랜덤 prefix가 붙은 이름) 대신 업로드 당시의 원본 파일명을 사용한다.
+  const meta = obj.customMetadata || {};
+  if (meta.name) {
+    const original = decodeURIComponent(meta.name);
+    const encoded = encodeURIComponent(original);
+    const ascii = original.replace(/[^\x20-\x7E]/g, "_").replace(/["\\]/g, "_");
+    headers.set("content-disposition", `attachment; filename="${ascii}"; filename*=UTF-8''${encoded}`);
+  }
+  headers.set("cache-control", "private, max-age=300");
+  // 업로드된 콘텐츠는 불투명 오리진(sandbox)에서 렌더링해 포털 저장소/쿠키를
+  // 절대 읽지 못하게 한다.
+  headers.set(
+    "content-security-policy",
+    "sandbox allow-scripts allow-popups allow-forms allow-modals allow-downloads"
+  );
+  return new Response(obj.body, { headers });
 }
 
 export default {
@@ -151,6 +255,7 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
+    // 메뉴1: GitHub Releases
     if (path === "/api/releases") {
       return listReleases(env);
     }
@@ -159,13 +264,18 @@ export default {
       return downloadAsset(env, id);
     }
 
-    // 조사 결과물(보고서 예시)은 포털(samsungda.net) 워커가 보유 — 그대로 프록시
-    if (
-      path === "/api/research" ||
-      path.startsWith("/api/research/") ||
-      path.startsWith("/research/")
-    ) {
-      return proxyToPortal(request, url);
+    // 메뉴3: 조사 결과물(포털과 동일 R2 버킷 직접 접근)
+    if (path === "/api/research") {
+      return handleResearchApi(request, env, null);
+    }
+    if (path.startsWith("/api/research/")) {
+      const rid = decodeURIComponent(path.slice("/api/research/".length));
+      return handleResearchApi(request, env, rid);
+    }
+    if (path.startsWith("/research/")) {
+      const rid = decodeURIComponent(path.slice("/research/".length));
+      if (!rid) return new Response("Not found", { status: 404, headers: TEXT });
+      return serveResearchFile(env, rid);
     }
 
     // 그 외 모든 경로는 정적 자산(가이드 페이지)으로 서비스.
