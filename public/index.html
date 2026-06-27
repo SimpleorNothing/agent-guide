@@ -28,7 +28,10 @@
   .panel-head .desc{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6}
 
   /* STEP 배지 (메뉴 순번) */
-  .step-badge{display:inline-flex;align-items:center;height:25px;padding:0 13px;margin-bottom:10px;border-radius:999px;background:#1a2332;color:#fff;font-size:12px;font-weight:700;letter-spacing:.8px}
+  .step-badge{display:inline-flex;align-items:center;height:25px;padding:0 13px;border-radius:999px;background:#1a2332;color:#fff;font-size:12px;font-weight:700;letter-spacing:.8px;flex:none}
+
+  /* 배지 + 제목을 한 줄에 나란히 배치 */
+  .head-title{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 
   /* 하위 메뉴(서브 패널) */
   .subpanel{margin-top:28px}
@@ -154,8 +157,10 @@
   <!-- 메뉴 1 : 클로드 에이전트 만들기 -->
   <section class="panel" data-panel="make">
     <div class="panel-head">
-      <span class="step-badge">MENU 1</span>
-      <h2>클로드 에이전트 만들기</h2>
+      <div class="head-title">
+        <span class="step-badge">MENU 1</span>
+        <h2>클로드 에이전트 만들기</h2>
+      </div>
       <p class="desc">클로드 에이전트를 직접 만드는 데 필요한 활용법과 작업 가이드 자료를 다운로드할 수 있습니다.</p>
     </div>
 
@@ -171,8 +176,10 @@
   <!-- 메뉴 2 : 워드보고서 작성 예시 -->
   <section class="panel" data-panel="examples" id="research-section">
     <div class="panel-head">
-      <span class="step-badge">MENU 2</span>
-      <h2>워드보고서 작성 예시</h2>
+      <div class="head-title">
+        <span class="step-badge">MENU 2</span>
+        <h2>워드보고서 작성 예시</h2>
+      </div>
       <p class="desc">클로드를 이용해 작성한 보고서입니다. (누구나 업로드 가능)</p>
     </div>
     <div class="dropzone" id="research-dropzone" role="button" tabindex="0">
