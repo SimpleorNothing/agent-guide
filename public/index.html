@@ -27,6 +27,13 @@
   .panel-head h2{font-size:20px;font-weight:700;letter-spacing:-.3px}
   .panel-head .desc{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6}
 
+  /* 하위 메뉴(서브 패널) */
+  .subpanel{margin-top:28px}
+  .subpanel:first-of-type{margin-top:0}
+  .subpanel-head{margin-bottom:14px}
+  .subpanel-head h3{font-size:16px;font-weight:700;letter-spacing:-.2px}
+  .subpanel-head .desc{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.6}
+
   /* 릴리스(자료) 목록 */
   @keyframes skeleton-wave{0%{background-position:-200px 0}100%{background-position:calc(200px + 100%) 0}}
   .skeleton{background:#eef0f3;background-image:linear-gradient(90deg,#eef0f3 0,#e2e6ec 40px,#eef0f3 80px);background-size:200px 100%;background-repeat:no-repeat;animation:skeleton-wave 1.2s infinite linear;border-radius:10px;display:block;height:120px;margin-bottom:14px}
@@ -144,23 +151,23 @@
       <div class="skeleton"></div>
       <div class="skeleton s2"></div>
     </div>
+
+    <!-- 하위 메뉴 : 클로드 에이전트 추가 가이드 -->
+    <div class="subpanel" data-panel="extra">
+      <div class="subpanel-head">
+        <h3>클로드 에이전트 추가 가이드</h3>
+        <p class="desc">에이전트를 더 깊이 활용하기 위한 추가 가이드 자료입니다.</p>
+      </div>
+      <div class="empty">
+        <span class="emoji">🧩</span>
+        추가 가이드는 준비 중입니다.<br>
+        자료가 업로드되면 이 메뉴에 자동으로 표시됩니다.
+        <span class="pill">추가 업로드 예정</span>
+      </div>
+    </div>
   </section>
 
-  <!-- 메뉴 2 : 클로드 에이전트 추가 가이드 -->
-  <section class="panel" data-panel="extra">
-    <div class="panel-head">
-      <h2>클로드 에이전트 추가 가이드</h2>
-      <p class="desc">에이전트를 더 깊이 활용하기 위한 추가 가이드 자료입니다.</p>
-    </div>
-    <div class="empty">
-      <span class="emoji">🧩</span>
-      추가 가이드는 준비 중입니다.<br>
-      자료가 업로드되면 이 메뉴에 자동으로 표시됩니다.
-      <span class="pill">추가 업로드 예정</span>
-    </div>
-  </section>
-
-  <!-- 메뉴 3 : 워드보고서 작성 예시 -->
+  <!-- 메뉴 2 : 워드보고서 작성 예시 -->
   <section class="panel" data-panel="examples" id="research-section">
     <div class="panel-head">
       <h2>워드보고서 작성 예시</h2>
