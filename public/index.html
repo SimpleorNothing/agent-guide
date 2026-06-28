@@ -217,7 +217,7 @@
     var d = new Date(iso);
     if(isNaN(d)) return '';
     var p = function(n){ return String(n).padStart(2,'0'); };
-    return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate());
+    return d.getFullYear() + '.' + p(d.getMonth()+1) + '.' + p(d.getDate());
   }
   function fileIcon(name){
     var ext = String(name).split('.').pop().toLowerCase();
@@ -250,12 +250,9 @@
             + '<a class="asset-btn" href="/api/download/' + encodeURIComponent(a.asset_id) + '">다운로드</a>'
             + '</li>';
         }).join('');
-        var changeLabel = String(rel.description || '').split('\n')[0].trim();
         return '<div class="release-group">'
           + (assets ? '<ul class="assets">' + assets + '</ul>' : '<p class="no-asset">첨부 파일 없음</p>')
-          + '<div class="release-meta">' + formatDate(rel.latest_updated_at || rel.latest_uploaded_at || rel.published_at)
-          + (changeLabel ? ' <span class="release-change">(' + esc(changeLabel) + ')</span>' : '')
-          + '</div></div>';
+          + '</div>';
       }).join('');
     }).catch(function(err){
       box.innerHTML = '<div class="error">자료 목록을 불러오지 못했습니다 : ' + esc(err.message) + '</div>';
