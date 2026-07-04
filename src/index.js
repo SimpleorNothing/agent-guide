@@ -322,11 +322,16 @@ async function handleBucketApi(request, env, bucket, id) {
   if (!id) {
     if (request.method === "GET") {
       const listed = await bucket.list({ include: ["customMetadata", "httpMetadata"] });
-      // report-idea의 아이디어 뱅크(idea-bank/ prefix)는 같은 버킷을 공유하지만
-      // 이 파일 목록의 대상이 아니다. report-idea가 직접 CRUD하며 파일별 삭제
-      // 비밀번호가 없어 여기선 삭제할 수도 없으므로 목록에서 제외한다.
+      // 이 버킷(samsungda-research)은 여러 도구가 prefix로 네임스페이스를 나눠 공유한다.
+      // MENU2(워드보고서 작성 예시)는 "보고서 결과물"만 보여야 하므로 다른 도구 소유의
+      // prefix는 목록에서 제외한다(이들은 파일별 삭제 비밀번호도 없어 여기선 삭제 불가):
+      //   idea-bank/   report-idea 아이디어 뱅크
+      //   newsletter/  뉴스레터 아카이브(latest.html·일자별) — 뉴스레터 Worker 소유
+      //   subscribers/ 뉴스레터 구독자 레코드
+      //   signals/     FBX 등 외부 지표 데이터
+      const SKIP_PREFIXES = ["idea-bank/", "newsletter/", "subscribers/", "signals/"];
       const items = listed.objects
-        .filter((o) => !o.key.startsWith("idea-bank/"))
+        .filter((o) => !SKIP_PREFIXES.some((p) => o.key.startsWith(p)))
         .map((o) => ({
         id: o.key,
         title: o.customMetadata?.title ? decodeURIComponent(o.customMetadata.title) : o.key,
