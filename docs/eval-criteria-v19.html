@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>평가기준 가이드 v19</title>
+<style>
+  body { font-family: "Malgun Gothic","Apple SD Gothic Neo",sans-serif; max-width: 860px; margin: 40px auto; padding: 0 20px; line-height: 1.6; color:#222; }
+  h1 { font-size: 1.6em; border-bottom: 3px solid #333; padding-bottom: 8px; }
+  h2 { font-size: 1.2em; margin-top: 2em; border-left: 5px solid #555; padding-left: 10px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; font-size: 0.95em; }
+  th { background: #f2f2f2; }
+  .meta { color:#666; font-size:0.9em; }
+  ul { margin: 6px 0; }
+  .footer { margin-top: 3em; padding-top: 1em; border-top: 1px solid #ccc; font-size: 0.9em; color:#555; }
+  .history-table td:first-child { white-space: nowrap; font-weight:bold; }
+</style>
+</head>
+<body>
+
+<h1>평가기준 가이드 v19</h1>
+<p class="meta">'26.6.21 · 작업가이드 Step 1·2·3 v57 연동<br>
+운영 정본 = Agent_Prism 메모리. 본 문서는 기록/열람용.</p>
+
+<h2>1. 보고서 유형別 가중치 (Step1 / Step2 / Step3)</h2>
+<table>
+<tr><th>유형</th><th>Step1</th><th>Step2</th><th>Step3</th></tr>
+<tr><td>A 시장/산업</td><td>30%</td><td>50%</td><td>20%</td></tr>
+<tr><td>B 기업전략·M&amp;A</td><td>45%</td><td>40%</td><td>15%</td></tr>
+<tr><td>C 거시경제·정책</td><td>50%</td><td>35%</td><td>15%</td></tr>
+<tr><td>D 기술/혁신</td><td>40%</td><td>40%</td><td>20%</td></tr>
+<tr><td>E 국가/지역</td><td>35%</td><td>45%</td><td>20%</td></tr>
+<tr><td>기본값</td><td>40%</td><td>40%</td><td>20%</td></tr>
+</table>
+
+<h2>2. Step別 세부 배점</h2>
+<table>
+<tr><th>Step</th><th>세부 항목</th></tr>
+<tr><td>Step 1 (구조)</td><td>인과경로분해 35% · 구조 30% · 논리연결 20% · 결론 15%</td></tr>
+<tr><td>Step 2 (표기·줄채움)</td><td>헤드라인 20% · 1줄작성 10% · 정량출처 25% · 표기 20% · 가독성 15% · 도표 10%</td></tr>
+<tr><td>Step 3 (점검)</td><td>포맷 35% · 1줄줄바꿈 5% · 오탈자 25% · 마감 20% · 페이지분배 15%</td></tr>
+</table>
+
+<h2>3. 환산 계수 (v56+ 확정)</h2>
+<ul>
+<li>전각(한글·한자·가운뎃점) = 1.0</li>
+<li>반각(라틴·숫자·공백·기타) = 0.5 일괄</li>
+<li>구 가중치(라틴 0.6·공백 0.23·가운뎃점 0.5)는 폐기</li>
+<li>em 기준 4.94mm</li>
+</ul>
+
+<h2>4. 안전선 / 채움 하한 (양방향 관문)</h2>
+<table>
+<tr><th>레벨</th><th>안전선(상한)</th><th>채움 하한(하한)</th></tr>
+<tr><td>L1</td><td>≤30</td><td>≥27</td></tr>
+<tr><td>L2</td><td>≤28</td><td>≥25</td></tr>
+<tr><td>L3</td><td>≤27</td><td>≥24</td></tr>
+</table>
+<p>※ "줄바꿈 0건 통과" ≠ "채움 하한 충족" — 별개 관문, 둘 다 통과 필수 (Step 3 No.50 함정 사례)</p>
+
+<h2>5. 1줄/2줄 판정 (양방향 1.5배 기준)</h2>
+<p>총 환산 자수가 레벨別 안전 상한의 1.5배를 초과하면 2줄 허용: L1 &gt;45 / L2 &gt;42 / L3 &gt;41 → 2줄, 그 외 → 1줄로 압축.<br>
+2줄 작성 자체는 정상(감점 사유 아님). 감점은 "1줄을 선택했는데 안전선 초과 또는 채움 하한 미달"인 경우에만 적용.</p>
+
+<h2>6. L0 서식 점검</h2>
+<p>Solution B 확정(−140 DXA 돌출). 3페이지 이상 보고서에 권장, 페이지당 L0 1개 상한.</p>
+
+<h2>7. v18 승계 항목</h2>
+<ul>
+<li>Research 추천 등급 체계</li>
+<li>미검증 수치 → 빨간 Italic 표기</li>
+<li>Research 보너스 게이트</li>
+<li>평이화(어휘만 쉽게) + 격식 문어체 톤 유지</li>
+<li>국가명 한자 7종 (美/中/日/獨/佛/伊/英)</li>
+<li>인과 경로 표현 권장 (메커니즘은 Type D 기술/혁신 한정 허용)</li>
+</ul>
+
+<h2>8. 감점 완화 원칙 (모든 평가 공통 적용)</h2>
+<ul>
+<li>정량 수치 없는 입력자료 → 인과경로 정량기여도 미명시 완화 (정성 등급화時 만점, 정성 비교만時 60%)</li>
+<li>단일 출처 입력 → 출처 다양성 감점 면제</li>
+<li>시연용 예시 수치 빨간 Italic → 항상 강제 유지</li>
+<li>도표 부족 → 현재 감점분의 50%만 적용</li>
+<li>한글(영문) 병기 → 원문 소스에서 한글 표기 안 했으면 감점 면제</li>
+<li>헤드라인 정량 KPI → 원문에 정량 수치 없으면 감점 면제</li>
+<li>시사점 액션 동사 → 방향성 제시(모니터링 강화·검토·대응)로 충분, 구체 KPI 미적용 감점 면제</li>
+</ul>
+
+<h2>9. 인과경로 분해 원칙</h2>
+<ul>
+<li>원문에 경로·비중 명시 → 그대로 표현 (직접/간접 무리한 추가 구분 불요)</li>
+<li>원문이 나열식 → 추가 구조화(직접/간접 분해)는 가점 사유</li>
+<li>원문 경로분해 있는데 자의적 재구성 → 감점 사유</li>
+</ul>
+
+<h2>10. 평가 출력 규칙 (요약)</h2>
+<ul>
+<li>서두 필수: ①평가기준 버전 ②작업가이드 버전 ③보고서 유형 ④Step 가중치 ⑤Step別 세부 배점</li>
+<li>출력 순서: 종합점수 표 → Step 1 → Step 2 → Step 3</li>
+<li>비교 평가 순서: S → Q → C (목표 점수 S 70 / Q 80 / C 90)</li>
+</ul>
+
+<p style="text-align:right; margin-top:2em;">- 以&nbsp;&nbsp;上 -</p>
+
+<div class="footer">
+<h2 style="border:none; margin-top:0;">※ 버전 업데이트 이력</h2>
+<table class="history-table">
+<tr><th>버전</th><th>일자</th><th>주요 변경 내역</th></tr>
+<tr><td>v19</td><td>'26.6.21</td><td>L1 줄바꿈 규칙 강제→권장 완화 + 전 레벨 양방향 1.5배 채움 기준 도입 + 환산 계수 오류 수정(전각 1.0/반각 0.5, 가운뎃점 전각, em 4.94mm) — 작업가이드 v57 연동</td></tr>
+<tr><td>v18</td><td>이전</td><td>Research 추천 등급, 미검증 수치 빨간 Italic, Research 보너스 게이트, 평이화·격식 문어체, 7개국 한자, 인과 경로 권장 등 기반 체계 확립</td></tr>
+</table>
+</div>
+
+</body>
+</html>
