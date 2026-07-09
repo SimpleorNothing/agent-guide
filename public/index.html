@@ -57,12 +57,6 @@
   .release-group{margin-bottom:14px}
   .release-group:last-child{margin-bottom:0}
 
-  /* 보고서 평가기준 카드 */
-  .eval-card{border:1px solid var(--line-strong);padding:28px 22px;background:var(--panel);margin-bottom:44px;margin-top:-20px;transition:border-color .15s,box-shadow .15s}
-  .eval-card:hover{border-color:var(--new);box-shadow:0 2px 12px rgba(70,100,126,.12)}
-  .eval-card a{color:var(--new);text-decoration:none;font-weight:600;font-size:16px}
-  .eval-card a:hover{text-decoration:underline}
-
   /* 릴리스(자료) 목록 */
   @keyframes skeleton-wave{0%{background-position:-200px 0}100%{background-position:calc(200px + 100%) 0}}
   .skeleton{background:#E4E7E3;background-image:linear-gradient(90deg,#E4E7E3 0,#D3D9D6 40px,#E4E7E3 80px);background-size:200px 100%;background-repeat:no-repeat;animation:skeleton-wave 1.2s infinite linear;display:block;height:120px;margin-bottom:14px}
@@ -181,13 +175,11 @@
         <div class="skeleton"></div>
         <div class="skeleton s2"></div>
       </div>
+      <div style="margin-top:24px;padding-top:24px;border-top:1px solid var(--line)">
+        <p>※ <a href="https://simpleornothing.github.io/agent-guide/eval-criteria-v19.html" target="_blank" rel="noopener">보고서 평가기준</a></p>
+      </div>
     </div>
   </section>
-
-  <!-- 보고서 평가기준 -->
-  <div class="eval-card">
-    <p>※ <a href="https://simpleornothing.github.io/agent-guide/eval-criteria-v19.html" target="_blank" rel="noopener">보고서 평가기준</a></p>
-  </div>
 
   <!-- 메뉴 2 : 워드보고서 작성 예시 -->
   <section class="panel" data-panel="examples" id="research-section">
