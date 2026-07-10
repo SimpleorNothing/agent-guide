@@ -329,7 +329,9 @@ async function handleBucketApi(request, env, bucket, id) {
       //   newsletter/  뉴스레터 아카이브(latest.html·일자별) — 뉴스레터 Worker 소유
       //   subscribers/ 뉴스레터 구독자 레코드
       //   signals/     FBX 등 외부 지표 데이터
-      const SKIP_PREFIXES = ["idea-bank/", "newsletter/", "subscribers/", "signals/"];
+      //   usage/       사이트 관리(__admin)에서 올리는 API 비용 Export CSV — 운영 전용,
+      //                포털 사이트 관리에서만 다루며 여기(보고서 예시)에는 노출하지 않는다.
+      const SKIP_PREFIXES = ["idea-bank/", "newsletter/", "subscribers/", "signals/", "usage/"];
       const items = listed.objects
         .filter((o) => !SKIP_PREFIXES.some((p) => o.key.startsWith(p)))
         .map((o) => ({
